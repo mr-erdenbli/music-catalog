@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный каталог — Вариант 14</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0f14; --bg-card: #1a1a24; --bg-elevated: #22222e;
+            --border: #2e2e3e; --text: #e8e8f0; --text-muted: #8b8b9e;
+            --accent: #7c5cff; --accent-hover: #9070ff; --accent-glow: rgba(124, 92, 255, 0.35);
+            --success: #22c55e; --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(124, 92, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 90%, rgba(236, 72, 153, 0.1), transparent 40%);
+            background-attachment: fixed;
+        }
+        .container { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+        header { text-align: center; margin-bottom: 2.5rem; }
+        h1 {
+            font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.4rem;
+        }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+        .badge {
+            display: inline-block; margin-top: 0.75rem; padding: 0.25rem 0.75rem;
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+            color: var(--accent); background: rgba(124, 92, 255, 0.12);
+            border: 1px solid rgba(124, 92, 255, 0.3); border-radius: 999px;
+        }
+
+        .search-bar {
+            display: flex; gap: 0.75rem; background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: 16px; padding: 0.75rem;
+            margin-bottom: 1.5rem; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .search-input-wrap { flex: 1; display: flex; align-items: center; gap: 0.6rem; padding: 0 0.75rem; }
+        .search-input-wrap svg { flex-shrink: 0; color: var(--text-muted); }
+        #searchInput {
+            flex: 1; background: transparent; border: none; outline: none;
+            color: var(--text); font-family: inherit; font-size: 1rem; padding: 0.6rem 0;
+        }
+        #searchInput::placeholder { color: var(--text-muted); }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.7rem 1.25rem; font-family: inherit; font-size: 0.9rem; font-weight: 600;
+            border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 16px rgba(124, 92, 255, 0.3); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); border-color: var(--accent); }
+        .btn-save { background: var(--success); color: #fff; padding: 0.45rem 0.9rem; font-size: 0.8rem; border-radius: 8px; }
+        .btn-save:hover:not(:disabled) { background: #16a34a; }
+        .btn-save:disabled { background: var(--bg-elevated); color: var(--text-muted); cursor: default; }
+        .btn-danger-ghost {
+            background: transparent; color: var(--danger); padding: 0.4rem 0.6rem;
+            font-size: 0.85rem; border: 1px solid transparent; border-radius: 8px;
+        }
+        .btn-danger-ghost:hover { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .tab {
+            padding: 0.75rem 1.25rem; background: transparent; border: none;
+            border-bottom: 2px solid transparent; color: var(--text-muted);
+            font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab .count {
+            background: var(--bg-elevated); padding: 0.1rem 0.5rem;
+            border-radius: 999px; font-size: 0.75rem;
+        }
+        .tab.active .count { background: rgba(124, 92, 255, 0.2); color: var(--accent); }
+
+        .panel { display: none; animation: fadeIn 0.3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .track {
+            display: flex; align-items: center; gap: 1rem; background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1rem; transition: all 0.2s;
+        }
+        .track:hover { border-color: rgba(124, 92, 255, 0.4); background: var(--bg-elevated); transform: translateX(2px); }
+        .track-num {
+            flex-shrink: 0; width: 28px; text-align: center; font-size: 0.85rem;
+            font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums;
+        }
+        .track-info { flex: 1; min-width: 0; }
+        .track-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-artist { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-link {
+            display: inline-flex; align-items: center; gap: 0.35rem; color: var(--accent);
+            text-decoration: none; font-size: 0.8rem; font-weight: 500;
+            padding: 0.35rem 0.7rem; border-radius: 8px; transition: background 0.2s;
+        }
+        .preview-link:hover { background: rgba(124, 92, 255, 0.12); }
+        .no-preview { color: var(--text-muted); font-size: 0.8rem; }
+
+        .playlist-card {
+            display: flex; align-items: center; gap: 1rem; background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.15rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .playlist-card:hover { border-color: var(--accent); background: var(--bg-elevated); }
+        .playlist-icon {
+            width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(124, 92, 255, 0.3), rgba(236, 72, 153, 0.2));
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+        }
+        .playlist-info { flex: 1; min-width: 0; }
+        .playlist-name { font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .playlist-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+        .detail-header {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;
+            padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+        }
+        .detail-header h2 { font-size: 1.3rem; font-weight: 700; }
+        .detail-header .meta { font-size: 0.85rem; color: var(--text-muted); }
+
+        .create-form { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .create-form input {
+            flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.7rem 1rem; color: var(--text);
+            font-family: inherit; font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+        }
+        .create-form input:focus { border-color: var(--accent); }
+        .create-form input::placeholder { color: var(--text-muted); }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+            display: none; align-items: center; justify-content: center; z-index: 999;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 1.5rem; width: min(420px, 90vw); max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .modal h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
+        .modal .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+        .modal-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .modal-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem;
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; color: var(--text); font-family: inherit;
+            font-size: 0.9rem; text-align: left; width: 100%;
+        }
+        .modal-item:hover { border-color: var(--accent); background: rgba(124, 92, 255, 0.1); }
+        .modal-item .emoji { font-size: 1.1rem; }
+        .modal-close {
+            margin-top: 1rem; width: 100%; background: transparent; border: 1px solid var(--border);
+            color: var(--text-muted); padding: 0.6rem; border-radius: 10px; cursor: pointer;
+            font-family: inherit; font-size: 0.9rem;
+        }
+        .modal-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+        .state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+        .state svg { margin-bottom: 1rem; opacity: 0.4; }
+        .state-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+        .spinner {
+            width: 32px; height: 32px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            margin: 0 auto 1rem; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast: полностью скрыт, пока нет уведомления */
+        #toast {
+            position: fixed; bottom: 2rem; left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+            padding: 0.85rem 1.5rem; border-radius: 12px; font-size: 0.9rem; font-weight: 500;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.25s ease,
+                        visibility 0.25s ease;
+            z-index: 1000;
+            display: flex; align-items: center; gap: 0.6rem;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #toast.success { border-color: rgba(34, 197, 94, 0.4); }
+        #toast.success .toast-icon { color: var(--success); }
+        #toast.error { border-color: rgba(239, 68, 68, 0.4); }
+        #toast.error .toast-icon { color: var(--danger); }
+
+        @media (max-width: 640px) {
+            .container { padding: 1.5rem 1rem 3rem; }
+            h1 { font-size: 1.8rem; }
+            .search-bar { flex-direction: column; }
+            .search-bar .btn { width: 100%; }
+            .create-form { flex-direction: column; }
+            .track { flex-wrap: wrap; gap: 0.5rem; }
+            .track-info { flex-basis: calc(100% - 40px); }
+            .track-actions { width: 100%; display: flex; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Музыкальный каталог</h1>
+            <p class="subtitle">Поиск треков через Deezer · Плейлисты в PostgreSQL</p>
+            <span class="badge">Вариант 14</span>
+        </header>
+
+        <div class="search-bar">
+            <div class="search-input-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Исполнитель, трек или альбом..." autocomplete="off">
+            </div>
+            <button class="btn btn-primary" onclick="searchMusic()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+                </svg>
+                Найти
+            </button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="search" onclick="switchTab('search')">🔍 Результаты поиска</button>
+            <button class="tab" data-tab="playlists" onclick="switchTab('playlists')">📋 Мои плейлисты <span class="count" id="playlistCount">0</span></button>
+        </div>
+
+        <div class="panel active" id="panel-search">
+            <div class="state" id="searchState">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+                </svg>
+                <div class="state-title">Начните поиск</div>
+                <div>Введите название трека или исполнителя выше</div>
+            </div>
+            <div class="list" id="searchList"></div>
+        </div>
+
+        <div class="panel" id="panel-playlists">
+            <div class="create-form">
+                <input type="text" id="newPlaylistName" placeholder="Название нового плейлиста..." maxlength="255">
+                <button class="btn btn-primary" onclick="createPlaylist()">＋ Создать плейлист</button>
+            </div>
+            <div class="state" id="playlistsState">
+                <div class="spinner"></div><div>Загрузка плейлистов...</div>
+            </div>
+            <div class="list" id="playlistsList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pickModal" onclick="if(event.target===this)closePickModal()">
+        <div class="modal">
+            <h3>Добавить в плейлист</h3>
+            <div class="modal-sub" id="pickModalSub"></div>
+            <div class="modal-list" id="pickModalList"></div>
+            <button class="modal-close" onclick="closePickModal()">Отмена</button>
+        </div>
+    </div>
+
+    <div id="toast"><span class="toast-icon"></span><span class="toast-text"></span></div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        let playlistsCache = [];
+        let pendingTrack = null;
+
+        function escapeHtml(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        function showToast(text, type = 'success') {
+            const toast = $('toast');
+            toast.className = type;
+            toast.querySelector('.toast-icon').textContent = type === 'success' ? '✓' : '✕';
+            toast.querySelector('.toast-text').textContent = text;
+            toast.classList.add('show');
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+            if (tab === 'playlists') loadPlaylists();
+        }
+
+        async function searchMusic() {
+            const q = $('searchInput').value.trim();
+            if (!q) { showToast('Введите запрос для поиска', 'error'); return; }
+
+            const state = $('searchState');
+            const list = $('searchList');
+            state.innerHTML = `<div class="spinner"></div><div>Поиск в Deezer...</div>`;
+            state.style.display = 'block';
+            list.innerHTML = '';
+
+            try {
+                const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка запроса');
+
+                if (data.results.length === 0) {
+                    state.innerHTML = `<div class="state-title">Ничего не найдено</div><div>Попробуйте другой запрос</div>`;
+                    return;
+                }
+                state.style.display = 'none';
+                list.innerHTML = data.results.map((t, i) => renderSearchTrack(t, i)).join('');
+            } catch (e) {
+                state.innerHTML = `<div class="state-title" style="color:var(--danger)">Ошибка</div><div>${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderSearchTrack(t, i) {
+            const payload = escapeHtml(JSON.stringify(t));
+            return `
+                <div class="track">
+                    <div class="track-num">${i + 1}</div>
+                    <div class="track-info">
+                        <div class="track-title">${escapeHtml(t.title)}</div>
+                        <div class="track-artist">${escapeHtml(t.artist)}</div>
+                    </div>
+                    <div class="track-actions">
+                        <button class="btn btn-save" onclick='openPickModal(${payload})'>💾 В плейлист</button>
+                    </div>
+                </div>`;
+        }
+
+        async function openPickModal(track) {
+            pendingTrack = track;
+            $('pickModalSub').textContent = `«${track.title}» — ${track.artist}`;
+            const list = $('pickModalList');
+            list.innerHTML = '<div class="state" style="padding:1rem"><div class="spinner"></div></div>';
+            $('pickModal').classList.add('show');
+
+            try {
+                const resp = await fetch('/api/playlists');
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка');
+
+                if (data.playlists.length === 0) {
+                    list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:1rem;font-size:0.9rem">
+                        Плейлистов пока нет.<br>Создайте первый на вкладке «Мои плейлисты».
+                    </div>`;
+                    return;
+                }
+
+                list.innerHTML = data.playlists.map(p => `
+                    <button class="modal-item" onclick="addTrackToPlaylist(${p.id}, this)">
+                        <span class="emoji">🎵</span>
+                        <span style="flex:1">
+                            <span style="display:block;font-weight:600">${escapeHtml(p.name)}</span>
+                            <span style="font-size:0.78rem;color:var(--text-muted)">${p.track_count} трек(ов)</span>
+                        </span>
+                    </button>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = `<div style="color:var(--danger);padding:1rem">${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function closePickModal() {
+            $('pickModal').classList.remove('show');
+            pendingTrack = null;
+        }
+
+        async function addTrackToPlaylist(playlistId, btn) {
+            if (!pendingTrack) return;
+            btn.disabled = true;
+            try {
+                const resp = await fetch(`/api/playlists/${playlistId}/tracks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pendingTrack),
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка добавления');
+                showToast(`«${pendingTrack.title}» добавлен в плейлист`);
+                closePickModal();
+                loadPlaylists();
+            } catch (e) {
+                btn.disabled = false;
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function loadPlaylists() {
+            const state = $('playlistsState');
+            const list = $('playlistsList');
+            state.innerHTML = `<div class="spinner"></div><div>Загрузка плейлистов...</div>`;
+            state.style.display = 'block';
+            list.innerHTML = '';
+
+            try {
+                const resp = await fetch('/api/playlists');
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка');
+
+                playlistsCache = data.playlists;
+                $('playlistCount').textContent = playlistsCache.length;
+
+                if (playlistsCache.length === 0) {
+                    state.innerHTML = `
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <div class="state-title">Плейлистов пока нет</div>
+                        <div>Создайте первый плейлист выше</div>`;
+                    return;
+                }
+                state.style.display = 'none';
+                list.innerHTML = playlistsCache.map(renderPlaylistCard).join('');
+            } catch (e) {
+                state.innerHTML = `<div class="state-title" style="color:var(--danger)">Ошибка</div><div>${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderPlaylistCard(p) {
+            const date = new Date(p.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
+            return `
+                <div class="playlist-card" onclick="openPlaylist(${p.id})">
+                    <div class="playlist-icon">🎵</div>
+                    <div class="playlist-info">
+                        <div class="playlist-name">${escapeHtml(p.name)}</div>
+                        <div class="playlist-meta">${p.track_count} трек(ов) · создан ${date}</div>
+                    </div>
+                    <button class="btn btn-danger-ghost" onclick="event.stopPropagation();deletePlaylist(${p.id}, '${escapeHtml(p.name)}')" title="Удалить плейлист">🗑</button>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+                        <path d="m9 18 6-6-6-6"></path>
+                    </svg>
+                </div>`;
+        }
+
+        async function createPlaylist() {
+            const input = $('newPlaylistName');
+            const name = input.value.trim();
+            if (!name) { showToast('Введите название плейлиста', 'error'); return; }
+            try {
+                const resp = await fetch('/api/playlists', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name }),
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка создания');
+                input.value = '';
+                showToast(`Плейлист «${name}» создан`);
+                loadPlaylists();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function deletePlaylist(id, name) {
+            if (!confirm(`Удалить плейлист «${name}»?\nВсе треки внутри будут удалены.`)) return;
+            try {
+                const resp = await fetch(`/api/playlists/${id}`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка удаления');
+                showToast('Плейлист удалён');
+                loadPlaylists();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        async function openPlaylist(id) {
+            const p = playlistsCache.find(x => x.id === id);
+            if (!p) return;
+
+            const list = $('playlistsList');
+            $('playlistsState').style.display = 'none';
+
+            list.innerHTML = `<div class="state"><div class="spinner"></div></div>`;
+            try {
+                const resp = await fetch(`/api/playlists/${id}/tracks`);
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка');
+
+                const header = `
+                    <div class="detail-header">
+                        <button class="btn btn-secondary" onclick="loadPlaylists()">← Назад</button>
+                        <div style="flex:1">
+                            <h2>${escapeHtml(p.name)}</h2>
+                            <div class="meta">${data.tracks.length} трек(ов)</div>
+                        </div>
+                    </div>`;
+
+                if (data.tracks.length === 0) {
+                    list.innerHTML = header + `
+                        <div class="state">
+                            <div class="state-title">Плейлист пуст</div>
+                            <div>Найдите треки во вкладке «Результаты поиска» и добавьте их сюда</div>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = header + data.tracks.map(t => renderPlaylistTrack(t, id)).join('');
+            } catch (e) {
+                list.innerHTML = `<div class="state-title" style="color:var(--danger)">Ошибка</div><div>${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderPlaylistTrack(t, playlistId) {
+            const preview = t.preview_url
+                ? `<a href="${escapeHtml(t.preview_url)}" target="_blank" class="preview-link">▶ Превью</a>`
+                : `<span class="no-preview">—</span>`;
+            return `
+                <div class="track">
+                    <div class="track-num">♫</div>
+                    <div class="track-info">
+                        <div class="track-title">${escapeHtml(t.title)}</div>
+                        <div class="track-artist">${escapeHtml(t.artist)}</div>
+                    </div>
+                    <div>${preview}</div>
+                    <div class="track-actions">
+                        <button class="btn btn-danger-ghost" onclick="deleteTrack(${playlistId}, ${t.id}, this)" title="Удалить из плейлиста">🗑</button>
+                    </div>
+                </div>`;
+        }
+
+        async function deleteTrack(playlistId, trackId, btn) {
+            btn.disabled = true;
+            try {
+                const resp = await fetch(`/api/playlists/${playlistId}/tracks/${trackId}`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Ошибка удаления');
+                showToast('Трек удалён из плейлиста');
+                openPlaylist(playlistId);
+            } catch (e) {
+                btn.disabled = false;
+                showToast(e.message, 'error');
+            }
+        }
+
+        $('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') searchMusic(); });
+        $('newPlaylistName').addEventListener('keydown', e => { if (e.key === 'Enter') createPlaylist(); });
+
+        fetch('/api/playlists')
+            .then(r => r.json())
+            .then(d => { $('playlistCount').textContent = (d.playlists || []).length; })
+            .catch(() => {});
+    </script>
+</body>
+</html>
